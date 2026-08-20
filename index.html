@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PMO · Painel de Iniciativas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F3EF;
+    --panel:#FFFFFF;
+    --ink:#0D0D0D;
+    --ink-soft:#6B6660;
+    --border:#E5E1D8;
+    --black:#0D0D0D;
+    --black-soft:#1C1C1C;
+    --orange:#FF4000;
+    --orange-dark:#D93500;
+    --amber:#D9822B;
+    --red:#C1443C;
+    --green:#2F7A54;
+    --gray:#B5AFA3;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(13,13,13,0.06), 0 8px 24px -12px rgba(13,13,13,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'DM Sans', Arial, sans-serif;
+    font-size:14px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'DM Sans', Arial, sans-serif;
+    font-weight:700;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .app{display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:230px;
+    flex-shrink:0;
+    background:var(--black);
+    color:#EDEFEA;
+    display:flex;
+    flex-direction:column;
+    padding:20px 14px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-mark{
+    width:30px;height:30px;border-radius:8px;
+    background:var(--orange);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'DM Sans';font-weight:700;color:#fff;font-size:14px;
+  }
+  .brand-name{font-family:'DM Sans';font-weight:600;font-size:15px;color:#fff;}
+  .brand-sub{font-size:11px;color:#9FB0A9;margin-top:1px;}
+  .nav{display:flex;flex-direction:column;gap:2px;margin-top:6px;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:10px;cursor:pointer;
+    color:#C7D2CC;font-size:13.5px;font-weight:500;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .nav-item.active{background:var(--orange);color:#fff;}
+  .nav-icon{width:16px;text-align:center;flex-shrink:0;}
+  .nav-spacer{flex:1;}
+  .identity-box{
+    border-top:1px solid rgba(255,255,255,0.1);
+    padding-top:14px;margin-top:14px;
+  }
+  .identity-label{font-size:10.5px;color:#8FA098;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .identity-current{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,0.06);
+    border-radius:10px;padding:8px 10px;cursor:pointer;
+  }
+  .identity-avatar{
+    width:24px;height:24px;border-radius:50%;
+    background:var(--orange);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;flex-shrink:0;
+  }
+  .identity-current span{font-size:12.5px;color:#fff;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* Main */
+  .main{flex:1;padding:26px 34px 60px;max-width:1180px;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
+  .topbar h1{font-size:22px;}
+  .topbar p{color:var(--ink-soft);font-size:13px;margin-top:4px;}
+  .btn{
+    border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;
+    cursor:pointer;font-family:'DM Sans';display:inline-flex;align-items:center;gap:6px;
+    transition:transform .08s ease, box-shadow .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--orange);color:#fff;}
+  .btn-primary:hover{background:var(--orange-dark);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--border);}
+  .btn-ghost:hover{background:#F0F1EC;}
+  .btn-sm{padding:6px 11px;font-size:12px;}
+  .btn-danger{background:#FBEAE8;color:var(--red);}
+  .btn-danger:hover{background:#F6D9D6;}
+
+  /* Cards / stats */
+  .grid{display:grid;gap:14px;}
+  .stats-row{grid-template-columns:repeat(4,1fr);margin-bottom:22px;}
+  .stat-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;box-shadow:var(--shadow);
+  }
+  .stat-label{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;}
+  .stat-value{font-family:'DM Sans';font-size:26px;font-weight:600;margin-top:6px;}
+  .stat-value.green{color:var(--green);} .stat-value.amber{color:var(--amber);} .stat-value.red{color:var(--red);}
+
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px;
+  }
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+  .card-title{font-size:15px;font-weight:600;}
+  .card-desc{color:var(--ink-soft);font-size:12.5px;margin-top:3px;line-height:1.5;}
+
+  .progress-track{height:7px;background:#EAECE6;border-radius:5px;overflow:hidden;margin-top:8px;}
+  .progress-fill{height:100%;border-radius:5px;background:var(--orange);transition:width .3s ease;}
+
+  .pulse-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+  .pulse-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .dot-green{background:var(--green);} .dot-amber{background:var(--amber);}
+  .dot-red{background:var(--red);} .dot-gray{background:var(--gray);}
+
+  .chip{
+    display:inline-flex;align-items:center;gap:5px;
+    background:#FFF1EC;color:var(--orange-dark);border-radius:999px;
+    padding:3px 10px;font-size:11.5px;font-weight:600;
+  }
+  .chip-gray{background:#F0F1EC;color:var(--ink-soft);}
+  .chip-owner{background:#FDF3E2;color:#8A5B0C;}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;
+  }
+  .badge-green{background:#E4F3E9;color:var(--green);}
+  .badge-amber{background:#FBF0DA;color:#8A5B0C;}
+  .badge-red{background:#FBEAE8;color:var(--red);}
+  .badge-gray{background:#EFF0EB;color:var(--ink-soft);}
+
+  /* Filters */
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  select, input[type=text], input[type=date], input[type=number], textarea{
+    font-family:'DM Sans';font-size:13px;color:var(--ink);
+    border:1px solid var(--border);border-radius:9px;padding:8px 11px;background:#fff;
+  }
+  select:focus, input:focus, textarea:focus{outline:2px solid var(--orange);outline-offset:1px;}
+  textarea{width:100%;resize:vertical;font-family:'DM Sans';}
+  label{font-size:12px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:4px;}
+  .field{margin-bottom:12px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row>.field{flex:1;}
+
+  /* Initiative rows */
+  .init-row{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s ease;
+  }
+  .init-row:hover{border-color:var(--orange);}
+  .init-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .init-name{font-weight:600;font-size:14px;}
+  .init-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center;}
+
+  .empty{
+    text-align:center;padding:50px 20px;color:var(--ink-soft);
+  }
+  .empty h3{color:var(--ink);margin-bottom:6px;font-size:16px;}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(20,35,31,0.45);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:40px 16px;z-index:100;overflow-y:auto;
+  }
+  .hidden{display:none !important;}
+  .modal{
+    background:#fff;border-radius:16px;max-width:560px;width:100%;
+    padding:24px 26px 26px;box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .modal-close{cursor:pointer;color:var(--ink-soft);font-size:20px;line-height:1;border:none;background:none;}
+  .kr-row, .metric-row{
+    display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;padding:10px;background:#F7F8F5;border-radius:10px;flex-wrap:wrap;
+  }
+  .kr-row .field, .metric-row .field{margin-bottom:0;min-width:0;}
+  .kr-row .field input, .kr-row .field select,
+  .metric-row .field input, .metric-row .field select{
+    width:100%;box-sizing:border-box;
+  }
+  .remove-x{cursor:pointer;color:var(--red);border:none;background:none;font-size:16px;padding:4px;}
+  .checkbox-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:9px;padding:8px 10px;}
+  .checkbox-item{display:flex;align-items:center;gap:8px;font-size:13px;}
+
+  .divider{height:1px;background:var(--border);margin:16px 0;}
+
+  .update-item{border-left:2px solid var(--border);padding-left:10px;margin-bottom:10px;}
+  .update-meta{font-size:11px;color:var(--ink-soft);margin-bottom:2px;}
+  .lock-note{
+    display:flex;align-items:center;gap:6px;background:#FDF3E2;color:#8A5B0C;
+    border-radius:9px;padding:8px 12px;font-size:12px;margin-bottom:12px;
+  }
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#D5D9CF;border-radius:4px;}
+
+  .gantt-wrap{position:relative;padding-top:2px;min-width:640px;}
+  .gantt-row{display:flex;align-items:center;height:24px;gap:8px;}
+  .gantt-label{width:190px;flex-shrink:0;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);}
+  .gantt-track{flex:1;position:relative;height:13px;background:#EFF0EB;border-radius:4px;}
+  .gantt-bar{position:absolute;top:0;height:100%;border-radius:4px;cursor:pointer;}
+  table th, table td{padding:8px 6px;border-bottom:1px solid var(--border);}
+  table tr:hover td{background:#FAFAF7;}
+
+  @media (max-width:800px){
+    .sidebar{position:fixed;left:-230px;transition:left .2s;z-index:50;}
+    .sidebar.open{left:0;}
+    .main{padding:20px;}
+    .stats-row{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div id="connBanner"></div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">P</div>
+      <div>
+        <div class="brand-name">PMO Painel</div>
+        <div class="brand-sub">OKRs · Iniciativas · Saúde</div>
+      </div>
+    </div>
+    <nav class="nav" id="navList"></nav>
+    <div class="nav-spacer"></div>
+    <div class="identity-box">
+      <div class="identity-label">Você é</div>
+      <div class="identity-current" onclick="app.openIdentityModal()">
+        <div class="identity-avatar" id="idAvatar">?</div>
+        <span id="idName">Definir nome</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ---------------- Storage: Supabase (dados compartilhados) + localStorage (identidade pessoal) ---------------- */
+const SUPABASE_URL = 'https://jhvbpohkxmmtrvdvmgzr.supabase.co/rest/v1';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpodmJwb2hreG1tdHJ2ZHZtZ3pyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNTk2MTksImV4cCI6MjEwMjgzNTYxOX0.D2FgNv0O0ToBnhmok0dgE0mjItFRAXlmE1_rPWhQ1C0';
+const SB_HEADERS = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer '+SUPABASE_ANON_KEY, 'Content-Type':'application/json' };
+const KEYS = { okrs:'pmo:okrs', kpis:'pmo:kpis', initiatives:'pmo:initiatives', profile:'pmo:profile' };
+let supabaseOk = true;
+
+async function loadShared(key){
+  try{
+    const res = await fetch(`${SUPABASE_URL}/pmo_data?key=eq.${encodeURIComponent(key)}&select=value`, { headers: SB_HEADERS });
+    if(!res.ok){ supabaseOk = false; renderConnBanner(); return null; }
+    supabaseOk = true; renderConnBanner();
+    const rows = await res.json();
+    return rows.length ? rows[0].value : null;
+  } catch(e){ console.error('supabase load error', key, e); supabaseOk = false; renderConnBanner(); return null; }
+}
+async function saveShared(key, value){
+  try{
+    const res = await fetch(`${SUPABASE_URL}/pmo_data`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, Prefer: 'resolution=merge-duplicates' },
+      body: JSON.stringify({ key, value }),
+    });
+    if(!res.ok){ supabaseOk = false; console.error('supabase save error', key, await res.text()); }
+    else supabaseOk = true;
+    renderConnBanner();
+  } catch(e){ console.error('supabase save error', key, e); supabaseOk = false; renderConnBanner(); }
+}
+function loadPersonal(key){
+  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; }
+  catch(e){ return null; }
+}
+function savePersonal(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); }
+  catch(e){ console.error('local save error', key, e); }
+}
+function genId(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function escapeHtml(str){
+  if(str===undefined||str===null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('pt-BR');
+}
+function nowISO(){ return new Date().toISOString(); }
+function todayInput(){ return new Date().toISOString().slice(0,10); }
+const STALE_DAYS = 7;
+function parseD(iso){ if(!iso) return null; const d = new Date(iso+'T00:00:00'); return isNaN(d) ? null : d; }
+function daysBetween(a,b){ return Math.round((b-a) / (1000*60*60*24)); }
+function isOverdue(it){
+  const end = parseD(it.endDate);
+  if(!end || it.status==='Concluída') return false;
+  return daysBetween(end, new Date()) > 0;
+}
+function lastActivityDate(it){
+  const dates = (it.updates||[]).map(u=>new Date(u.date));
+  if(dates.length) return new Date(Math.max(...dates));
+  return parseD(it.startDate);
+}
+function daysSinceActivity(it){
+  const d = lastActivityDate(it);
+  if(!d) return null;
+  return daysBetween(d, new Date());
+}
+
+/* ---------------- State ---------------- */
+const state = {
+  tab: 'overview',
+  okrs: [],
+  kpis: [],
+  initiatives: [],
+  profile: null,
+  filters: { okr:'', owner:'', status:'', q:'', okrCategory:'' },
+  openInitiativeId: null,
+  loaded: false,
+};
+
+const STATUS_OPTIONS = ['Não iniciada','Em andamento','Concluída','Bloqueada'];
+const HEALTH_OPTIONS = [
+  {v:'green', label:'Verde · Em dia'},
+  {v:'amber', label:'Amarelo · Atenção'},
+  {v:'red', label:'Vermelho · Crítico'},
+  {v:'gray', label:'Não avaliado'},
+];
+function healthLabel(v){ return (HEALTH_OPTIONS.find(h=>h.v===v)||{}).label || 'Não avaliado'; }
+function healthBadgeClass(v){ return 'badge-'+(v||'gray'); }
+function dotClass(v){ return 'dot-'+(v||'gray'); }
+
+/* worst health among a list, priority red > amber > green > gray */
+function worstHealth(list){
+  if(!list || !list.length) return 'gray';
+  if(list.some(m=>m.status==='red')) return 'red';
+  if(list.some(m=>m.status==='amber')) return 'amber';
+  if(list.some(m=>m.status==='green')) return 'green';
+  return 'gray';
+}
+
+/* ---------------- Load / init ---------------- */
+async function init(){
+  const [okrs, kpis, initiatives, profile] = await Promise.all([
+    loadShared(KEYS.okrs), loadShared(KEYS.kpis), loadShared(KEYS.initiatives), loadPersonal(KEYS.profile)
+  ]);
+  state.okrs = okrs || [];
+  state.kpis = kpis || seedKpis();
+  if(!kpis && supabaseOk) await saveShared(KEYS.kpis, state.kpis);
+  state.initiatives = initiatives || [];
+  state.profile = profile || null;
+  state.loaded = true;
+  renderNav();
+  renderIdentity();
+  renderConnBanner();
+  renderMain();
+  if(!state.profile){ openIdentityModal(true); }
+}
+function renderConnBanner(){
+  const el = document.getElementById('connBanner');
+  if(!el) return;
+  el.innerHTML = supabaseOk ? '' : `
+    <div style="background:#FBEAE8;color:var(--red);padding:8px 16px;font-size:12.5px;text-align:center">
+      ⚠️ Não foi possível conectar ao banco de dados (Supabase). Suas alterações podem não estar sendo salvas — verifique sua conexão e recarregue a página.
+    </div>`;
+}
+function seedKpis(){
+  return Array.from({length:15}, (_,i)=>({ id: genId('kpi'), name:'Métrica de saúde '+(i+1), unit:'', description:'' }));
+}
+
+/* ---------------- Nav ---------------- */
+const NAV_ITEMS = [
+  {id:'overview', label:'Dashboard de Controle', icon:'◧'},
+  {id:'queue', label:'Minha Fila', icon:'⚑'},
+  {id:'okrs', label:'Input de OKRs', icon:'◎'},
+  {id:'initiatives', label:'Input de Iniciativas', icon:'▤'},
+  {id:'tracking', label:'Painel de Iniciativas', icon:'▦'},
+  {id:'mine', label:'Minhas iniciativas', icon:'★'},
+  {id:'kpis', label:'Métricas de saúde', icon:'♥'},
+];
+function renderNav(){
+  const el = document.getElementById('navList');
+  el.innerHTML = NAV_ITEMS.map(n => `
+    <div class="nav-item ${state.tab===n.id?'active':''}" onclick="app.setTab('${n.id}')">
+      <span class="nav-icon">${n.icon}</span><span>${n.label}</span>
+    </div>`).join('');
+}
+function renderIdentity(){
+  const name = state.profile && state.profile.name ? state.profile.name : '';
+  document.getElementById('idName').textContent = name || 'Definir nome';
+  document.getElementById('idAvatar').textContent = name ? name.trim()[0].toUpperCase() : '?';
+}
+
+/* ---------------- Main render dispatcher ---------------- */
+function renderMain(){
+  const main = document.getElementById('main');
+  if(!state.loaded){ main.innerHTML = '<p style="color:var(--ink-soft)">Carregando…</p>'; return; }
+  renderNav();
+  if(state.tab==='overview') main.innerHTML = viewOverview();
+  else if(state.tab==='queue') main.innerHTML = viewQueue();
+  else if(state.tab==='okrs') main.innerHTML = viewOKRs();
+  else if(state.tab==='initiatives') main.innerHTML = viewInitiatives(false);
+  else if(state.tab==='tracking') main.innerHTML = viewTracking();
+  else if(state.tab==='mine') main.innerHTML = viewInitiatives(true);
+  else if(state.tab==='kpis') main.innerHTML = viewKpis();
+}
+
+/* ================= OVERVIEW ================= */
+function viewOverview(){
+  const total = state.initiatives.length;
+  const healthCounts = {green:0,amber:0,red:0,gray:0};
+  state.initiatives.forEach(it => { healthCounts[worstHealth(it.metrics)]++; });
+  const okrCount = state.okrs.length;
+  const categories = [...new Set(state.okrs.map(o=>o.category).filter(Boolean))].sort();
+  const filteredOkrs = state.filters.okrCategory ? state.okrs.filter(o=>o.category===state.filters.okrCategory) : state.okrs;
+
+  const okrCards = filteredOkrs.map(okr => {
+    const overallProgress = avgKrProgress(okr);
+    const linked = state.initiatives.filter(it => (it.okrIds||[]).includes(okr.id));
+    const dots = linked.slice(0,12).map(it => `<div class="pulse-dot ${dotClass(worstHealth(it.metrics))}" title="${escapeHtml(it.name)}"></div>`).join('');
+    const krCharts = (okr.keyResults||[]).map(k => `
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:2px">
+          <span>${escapeHtml(k.text)}</span>
+          <span class="mono" style="color:var(--orange-dark);font-weight:600">${krProgress(k)}%</span>
+        </div>
+        ${lineChartSvg(k)}
+      </div>`).join('') || '<p class="card-desc">Sem resultados-chave cadastrados.</p>';
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">${okr.category?`<span class="chip chip-gray" style="margin-right:6px">${escapeHtml(okr.category)}</span>`:''}${escapeHtml(okr.title)}</div>
+            <div class="card-desc">${linked.length} iniciativa(s) vinculada(s)${okr.ownerName?` · <span class="chip chip-owner" style="margin-left:2px">${escapeHtml(okr.ownerName)}</span>`:''}</div>
+          </div>
+          <div class="mono" style="font-weight:600;color:var(--orange-dark)">${overallProgress}%</div>
+        </div>
+        ${krCharts}
+        <div class="pulse-row">${dots || '<span style="color:var(--ink-soft);font-size:12px">Sem iniciativas ainda</span>'}</div>
+      </div>`;
+  }).join('');
+
+  const recentUpdates = [];
+  state.initiatives.forEach(it => (it.updates||[]).forEach(u => recentUpdates.push({...u, initiative:it.name, initId:it.id})));
+  recentUpdates.sort((a,b)=> new Date(b.date)-new Date(a.date));
+  const feed = recentUpdates.slice(0,8).map(u => `
+    <div class="update-item">
+      <div class="update-meta">${escapeHtml(u.author)} · ${new Date(u.date).toLocaleDateString('pt-BR')} · <a style="color:var(--orange-dark);cursor:pointer" onclick="app.openInitiative('${u.initId}')">${escapeHtml(u.initiative)}</a></div>
+      <div>${escapeHtml(u.text)}</div>
+    </div>`).join('') || '<p class="card-desc">Nenhuma atualização registrada ainda.</p>';
+
+  const statusCounts = {};
+  STATUS_OPTIONS.forEach(s=>statusCounts[s]=0);
+  state.initiatives.forEach(it => { statusCounts[it.status||'Não iniciada'] = (statusCounts[it.status||'Não iniciada']||0)+1; });
+
+  const trendSeries = portfolioTrendSeries(filteredOkrs);
+  const trendCard = trendSeries.length ? `
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <h3 style="font-size:14px">Tendência do portfólio — progresso médio dos OKRs por mês</h3>
+        <span class="mono" style="font-size:12px;color:var(--ink-soft)">${trendSeries.length} mês(es) com dados</span>
+      </div>
+      ${trendChartSvg(trendSeries)}
+    </div>` : '';
+
+  const atRisk = filteredOkrs.map(okr => {
+    const prog = avgKrProgress(okr);
+    if(prog >= 50) return null;
+    const linked = state.initiatives.filter(it => (it.okrIds||[]).includes(okr.id));
+    const causes = linked.filter(it => ['red','amber'].includes(worstHealth(it.metrics)) || it.status==='Bloqueada');
+    return { okr, prog, causes };
+  }).filter(Boolean);
+  const diagnosisCard = atRisk.length ? `
+    <div class="card" style="margin-bottom:20px;border-color:#F3D6CE">
+      <h3 style="font-size:14px;margin-bottom:10px">Diagnóstico — OKRs em risco e possíveis causas</h3>
+      ${atRisk.map(({okr,prog,causes}) => `
+        <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div>${okr.category?`<span class="chip chip-gray" style="margin-right:6px">${escapeHtml(okr.category)}</span>`:''}<strong style="font-size:13px">${escapeHtml(okr.title)}</strong></div>
+            <span class="badge badge-red">${prog}%</span>
+          </div>
+          <div style="margin-top:6px">
+            ${causes.length ? causes.map(it => `<span class="chip" style="cursor:pointer;margin:2px" onclick="app.openInitiative('${it.id}')"><span class="pulse-dot ${dotClass(worstHealth(it.metrics))}"></span>${escapeHtml(it.name)}</span>`).join('')
+              : '<span class="card-desc">Nenhuma iniciativa vinculada em risco identificada — vale investigar causas fora do painel.</span>'}
+          </div>
+        </div>`).join('')}
+    </div>` : '';
+
+  return `
+    <div class="topbar">
+      <div>
+        <h1>Dashboard de Controle</h1>
+        <p>Panorama consolidado de OKRs e saúde das iniciativas — somente visualização.</p>
+      </div>
+    </div>
+    <div class="grid stats-row">
+      <div class="stat-card"><div class="stat-label">OKRs ativos</div><div class="stat-value">${okrCount}</div></div>
+      <div class="stat-card"><div class="stat-label">Iniciativas</div><div class="stat-value">${total}</div></div>
+      <div class="stat-card"><div class="stat-label">Em dia</div><div class="stat-value green">${healthCounts.green}</div></div>
+      <div class="stat-card"><div class="stat-label">Em risco / críticas</div><div class="stat-value amber">${healthCounts.amber + healthCounts.red}</div></div>
+    </div>
+    <div class="pulse-row" style="margin-bottom:20px">
+      ${STATUS_OPTIONS.map(s=>`<span class="chip chip-gray">${s}: <strong class="mono">${statusCounts[s]}</strong></span>`).join('')}
+    </div>
+    ${trendCard}
+    ${diagnosisCard}
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="font-size:15px">Progresso por OKR</h3>
+          ${categories.length ? `<select onchange="app.setFilter('okrCategory', this.value)" style="font-size:12px;padding:5px 8px">
+            <option value="">Todos os pilares</option>
+            ${categories.map(c=>`<option value="${escapeHtml(c)}" ${state.filters.okrCategory===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+          </select>` : ''}
+        </div>
+        ${okrCards || emptyState('Nenhum OKR cadastrado', 'Crie seu primeiro OKR na aba OKRs.')}
+      </div>
+      <div class="card">
+        <h3 style="font-size:14px;margin-bottom:10px">Atualizações recentes</h3>
+        ${feed}
+      </div>
+    </div>`;
+}
+function krProgressAt(k, value){
+  const target = parseFloat(k.target); let baseline = parseFloat(k.baseline);
+  if(isNaN(baseline)) baseline = 0;
+  if(isNaN(target) || isNaN(value)) return 0;
+  if(target === baseline) return value >= target ? 100 : 0;
+  const pct = ((value - baseline) / (target - baseline)) * 100;
+  return Math.max(0, Math.min(100, Math.round(pct)));
+}
+function portfolioTrendSeries(okrsList){
+  const monthMap = {};
+  okrsList.forEach(okr => (okr.keyResults||[]).forEach(k => {
+    (k.monthlyUpdates||[]).forEach(u => {
+      const p = krProgressAt(k, u.value);
+      if(!monthMap[u.month]) monthMap[u.month] = {sum:0,count:0};
+      monthMap[u.month].sum += p; monthMap[u.month].count++;
+    });
+  }));
+  return Object.keys(monthMap).sort().map(m => ({month:m, value: Math.round(monthMap[m].sum/monthMap[m].count)}));
+}
+function trendChartSvg(series){
+  const W=1080,H=150,ML=8,MR=8,MT=16,MB=20;
+  const plotW=W-ML-MR, plotH=H-MT-MB;
+  let yMin=0, yMax=100;
+  const vals = series.map(s=>s.value);
+  yMin = Math.min(0, Math.min(...vals)-10); yMax = Math.max(100, Math.max(...vals)+10);
+  const xPos = i => series.length===1 ? ML+plotW/2 : ML + (i/(series.length-1))*plotW;
+  const yPos = v => MT + plotH - ((v-yMin)/(yMax-yMin))*plotH;
+  const path = series.map((s,i)=>`${i===0?'M':'L'} ${xPos(i).toFixed(1)} ${yPos(s.value).toFixed(1)}`).join(' ');
+  const dots = series.map((s,i)=>`<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(s.value).toFixed(1)}" r="3.5" fill="var(--orange)" stroke="#fff" stroke-width="1"/>`).join('');
+  const valueLabels = series.map((s,i)=>{
+    const up = i>0 && s.value>=series[i-1].value;
+    return `<text x="${xPos(i).toFixed(1)}" y="${(yPos(s.value)+(up?-10:16)).toFixed(1)}" font-size="10" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-weight="600" fill="var(--ink)">${s.value}%</text>`;
+  }).join('');
+  const xLabels = series.map((s,i)=>`<text x="${xPos(i).toFixed(1)}" y="${H-4}" font-size="9.5" text-anchor="middle" fill="var(--ink-soft)">${monthLabel(s.month)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block;overflow:visible">
+    <path d="${path}" fill="none" stroke="var(--black-soft)" stroke-width="2"/>
+    ${dots}${valueLabels}${xLabels}
+  </svg>`;
+}
+function krProgress(k){
+  const target = parseFloat(k.target);
+  const current = parseFloat(k.current);
+  let baseline = parseFloat(k.baseline);
+  if(isNaN(baseline)) baseline = 0;
+  if(isNaN(target) || isNaN(current)) return 0;
+  if(target === baseline) return current >= target ? 100 : 0;
+  const pct = ((current - baseline) / (target - baseline)) * 100;
+  return Math.max(0, Math.min(100, Math.round(pct)));
+}
+function avgKrProgress(okr){
+  const krs = okr.keyResults||[];
+  if(!krs.length) return 0;
+  const vals = krs.map(krProgress);
+  return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+}
+function sortedMonthlyUpdates(k){
+  return (k.monthlyUpdates||[]).slice().sort((a,b)=> a.month < b.month ? 1 : -1);
+}
+function monthLabel(m){
+  if(!m) return '';
+  const [y,mo] = m.split('-');
+  const names=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return names[parseInt(mo,10)-1]+'/'+y.slice(2);
+}
+function currentMonthInput(){ return new Date().toISOString().slice(0,7); }
+function lineChartSvg(k){
+  const pts = sortedMonthlyUpdates(k).slice().reverse(); // ordem cronológica ascendente
+  if(!pts.length){
+    return `<div style="font-size:12px;color:var(--ink-soft);padding:14px 0;text-align:center;background:#F7F8F5;border-radius:8px">Sem atualizações mensais ainda — registre o primeiro valor no card do OKR.</div>`;
+  }
+  const baseline = parseFloat(k.baseline)||0;
+  const target = parseFloat(k.target)||0;
+  const values = pts.map(p=>p.value);
+  const allVals = values.concat([baseline, target]);
+  let yMin = Math.min(...allVals), yMax = Math.max(...allVals);
+  if(yMin === yMax){ yMin -= 1; yMax += 1; }
+  const pad = (yMax - yMin) * 0.14;
+  yMin -= pad; yMax += pad;
+
+  const W = 560, H = 172, ML = 8, MR = 8, MT = 20, MB = 20;
+  const plotW = W - ML - MR, plotH = H - MT - MB;
+  const xPos = i => pts.length===1 ? ML + plotW/2 : ML + (i/(pts.length-1)) * plotW;
+  const yPos = v => MT + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+
+  const linePath = pts.map((p,i)=> `${i===0?'M':'L'} ${xPos(i).toFixed(1)} ${yPos(p.value).toFixed(1)}`).join(' ');
+  const baselineY = yPos(baseline).toFixed(1);
+  const targetY = yPos(target).toFixed(1);
+
+  const dots = pts.map((p,i)=> `<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(p.value).toFixed(1)}" r="3.2" fill="var(--orange)" stroke="#fff" stroke-width="1"/>`).join('');
+  const valueLabels = pts.map((p,i)=>{
+    const goingUp = i>0 && p.value >= pts[i-1].value;
+    const dy = goingUp ? -9 : 15;
+    return `<text x="${xPos(i).toFixed(1)}" y="${(yPos(p.value)+dy).toFixed(1)}" font-size="9.5" text-anchor="middle" fill="var(--ink)" font-family="'IBM Plex Mono',monospace" font-weight="600">${p.value}${escapeHtml(k.unit||'')}</text>`;
+  }).join('');
+  const xLabels = pts.map((p,i)=> `<text x="${xPos(i).toFixed(1)}" y="${H-4}" font-size="9" text-anchor="middle" fill="var(--ink-soft)">${monthLabel(p.month)}</text>`).join('');
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block;overflow:visible">
+      <line x1="${ML}" y1="${baselineY}" x2="${W-MR}" y2="${baselineY}" stroke="var(--gray)" stroke-width="1" stroke-dasharray="2,3"/>
+      <text x="${W-MR}" y="${(parseFloat(baselineY)-4).toFixed(1)}" font-size="9" text-anchor="end" fill="var(--ink-soft)">Baseline ${baseline}${escapeHtml(k.unit||'')}</text>
+      <line x1="${ML}" y1="${targetY}" x2="${W-MR}" y2="${targetY}" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="5,3"/>
+      <text x="${W-MR}" y="${(parseFloat(targetY)-4).toFixed(1)}" font-size="9" text-anchor="end" fill="var(--green)">Meta ${target}${escapeHtml(k.unit||'')}</text>
+      <path d="${linePath}" fill="none" stroke="var(--black-soft)" stroke-width="1.6"/>
+      ${dots}
+      ${valueLabels}
+      ${xLabels}
+    </svg>`;
+}
+function emptyState(title, sub){
+  return `<div class="card empty"><h3>${title}</h3><p style="font-size:13px">${sub}</p></div>`;
+}
+
+/* ================= OKRs ================= */
+/* ================= Minha Fila ================= */
+function viewQueue(){
+  const me = state.profile && state.profile.name;
+  if(!me){
+    return emptyState('Defina seu nome', 'Clique em "Definir nome" na barra lateral para ver sua fila de trabalho.');
+  }
+  const curMonth = currentMonthInput();
+  const myOkrs = state.okrs.filter(o => o.ownerName && o.ownerName.toLowerCase()===me.toLowerCase());
+  const pendingOkrKrs = [];
+  myOkrs.forEach(okr => (okr.keyResults||[]).forEach(k => {
+    const hasThisMonth = (k.monthlyUpdates||[]).some(u=>u.month===curMonth);
+    if(!hasThisMonth) pendingOkrKrs.push({okr,k});
+  }));
+
+  const myInitiatives = state.initiatives.filter(it => (it.ownerName||'').toLowerCase()===me.toLowerCase());
+  const overdueInits = myInitiatives.filter(isOverdue);
+  const staleInits = myInitiatives.filter(it => { const d = daysSinceActivity(it); return d!==null && d>=STALE_DAYS && it.status!=='Concluída' && !isOverdue(it); });
+  const notStarted = myInitiatives.filter(it => it.status==='Não iniciada');
+
+  const totalPending = pendingOkrKrs.length + overdueInits.length + staleInits.length;
+
+  const okrSection = pendingOkrKrs.length ? `
+    <div class="card" style="border-color:#F3D6CE;margin-bottom:14px">
+      <h3 style="font-size:14px;margin-bottom:8px">OKRs sem registro de ${monthLabel(curMonth)} <span class="badge badge-red">${pendingOkrKrs.length}</span></h3>
+      ${pendingOkrKrs.map(({okr,k}) => `
+        <div class="init-row" onclick="app.setTab('okrs')">
+          <div class="init-top">
+            <div>
+              <div class="init-name" style="font-size:13px">${okr.category?`<span class="chip chip-gray" style="margin-right:6px">${escapeHtml(okr.category)}</span>`:''}${escapeHtml(okr.title)}</div>
+              <div class="init-meta"><span class="card-desc">${escapeHtml(k.text)}</span></div>
+            </div>
+            <span class="btn btn-ghost btn-sm">Registrar →</span>
+          </div>
+        </div>`).join('')}
+    </div>` : '';
+
+  const overdueSection = overdueInits.length ? `
+    <div class="card" style="border-color:#F3D6CE;margin-bottom:14px">
+      <h3 style="font-size:14px;margin-bottom:8px">Iniciativas atrasadas <span class="badge badge-red">${overdueInits.length}</span></h3>
+      ${overdueInits.map(it => `
+        <div class="init-row" onclick="app.openInitiative('${it.id}')">
+          <div class="init-top">
+            <div><div class="init-name" style="font-size:13px">${escapeHtml(it.name)}</div></div>
+            <span class="badge badge-red">${daysBetween(parseD(it.endDate), new Date())}d atrasado</span>
+          </div>
+        </div>`).join('')}
+    </div>` : '';
+
+  const staleSection = staleInits.length ? `
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="font-size:14px;margin-bottom:8px">Sem atividade há ${STALE_DAYS}+ dias <span class="badge badge-amber">${staleInits.length}</span></h3>
+      ${staleInits.map(it => `
+        <div class="init-row" onclick="app.openInitiative('${it.id}')">
+          <div class="init-top">
+            <div><div class="init-name" style="font-size:13px">${escapeHtml(it.name)}</div></div>
+            <span class="badge badge-amber">${daysSinceActivity(it)}d sem atividade</span>
+          </div>
+        </div>`).join('')}
+    </div>` : '';
+
+  const notStartedSection = notStarted.length ? `
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="font-size:14px;margin-bottom:8px">Ainda não iniciadas <span class="badge badge-gray">${notStarted.length}</span></h3>
+      ${notStarted.map(it => `
+        <div class="init-row" onclick="app.openInitiative('${it.id}')">
+          <div class="init-name" style="font-size:13px">${escapeHtml(it.name)}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  const nothing = totalPending===0 ? `<div class="card empty"><h3>Tudo em dia! 🎉</h3><p style="font-size:13px">Nenhum OKR pendente de registro este mês e nenhuma iniciativa atrasada ou esquecida.</p></div>` : '';
+
+  return `
+    <div class="topbar">
+      <div><h1>Minha Fila</h1><p>Pendências de ${escapeHtml(me)} — OKRs a registrar e iniciativas que precisam de atenção.</p></div>
+    </div>
+    ${nothing}
+    ${okrSection}
+    ${overdueSection}
+    ${staleSection}
+    ${notStartedSection}
+    ${myOkrs.length===0 && myInitiatives.length===0 ? emptyState('Nenhum OKR ou iniciativa atribuída a você', 'Peça para alguém te atribuir como responsável, ou cadastre você mesmo em Input de OKRs / Iniciativas.') : ''}`;
+}
+function viewOKRs(){
+  const categories = [...new Set(state.okrs.map(o=>o.category).filter(Boolean))].sort();
+  const filteredOkrs = state.filters.okrCategory ? state.okrs.filter(o=>o.category===state.filters.okrCategory) : state.okrs;
+  const cards = filteredOkrs.map(okr => {
+    const progress = avgKrProgress(okr);
+    const linked = state.initiatives.filter(it => (it.okrIds||[]).includes(okr.id));
+    const krHtml = (okr.keyResults||[]).map(k => {
+      const prog = krProgress(k);
+      const hist = sortedMonthlyUpdates(k);
+      const histChips = hist.slice(0,6).map(h=>`<span class="chip chip-gray mono">${monthLabel(h.month)}: ${h.value}${escapeHtml(k.unit||'')}</span>`).join(' ') || '<span class="card-desc">Sem atualizações mensais ainda.</span>';
+      return `
+      <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:2px">
+          <span style="font-weight:600">${escapeHtml(k.text)}</span>
+          <span class="mono" style="color:var(--ink-soft)">${prog}%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${prog}%"></div></div>
+        <div style="display:flex;gap:12px;margin-top:4px;font-size:11.5px;color:var(--ink-soft)" class="mono">
+          <span>Baseline: ${k.baseline ?? 0}${escapeHtml(k.unit||'')}</span>
+          <span>Atual: ${k.current ?? 0}${escapeHtml(k.unit||'')}</span>
+          <span>Meta: ${k.target ?? 0}${escapeHtml(k.unit||'')}</span>
+        </div>
+        <div class="pulse-row" style="margin-top:6px">${histChips}</div>
+        <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
+          <input type="month" class="mono" style="font-size:12px;padding:5px 8px" value="${currentMonthInput()}" id="month_${okr.id}_${k.id}">
+          <input type="number" placeholder="valor do mês" style="width:110px;font-size:12px;padding:5px 8px" id="val_${okr.id}_${k.id}">
+          <button class="btn btn-ghost btn-sm" onclick="app.addMonthlyUpdate('${okr.id}','${k.id}')">Registrar mês</button>
+        </div>
+      </div>`;
+    }).join('') || '<p class="card-desc">Sem resultados-chave cadastrados.</p>';
+    const chips = linked.map(it => `<span class="chip" style="cursor:pointer" onclick="app.openInitiative('${it.id}')"><span class="pulse-dot ${dotClass(worstHealth(it.metrics))}"></span>${escapeHtml(it.name)}</span>`).join(' ') || '<span class="card-desc">Nenhuma iniciativa vinculada</span>';
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">${okr.category?`<span class="chip chip-gray" style="margin-right:6px">${escapeHtml(okr.category)}</span>`:''}${escapeHtml(okr.title)}</div>
+            <div class="card-desc">${escapeHtml(okr.description||'')}${okr.ownerName?` <span class="chip chip-owner">${escapeHtml(okr.ownerName)}</span>`:''}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="app.openOkrModal('${okr.id}')">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="app.deleteOkr('${okr.id}')">Excluir</button>
+          </div>
+        </div>
+        <div class="mono" style="font-size:12px;color:var(--ink-soft);margin-bottom:6px">Progresso médio dos KRs: <strong style="color:var(--orange-dark)">${progress}%</strong></div>
+        ${krHtml}
+        <div class="divider"></div>
+        <div class="card-desc" style="margin-bottom:6px;font-weight:600;color:var(--ink)">Iniciativas vinculadas</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="topbar">
+      <div><h1>Input de OKRs</h1><p>${filteredOkrs.length} de ${state.okrs.length} objetivo(s). Defina baseline e meta de cada KR e registre o valor todo mês.</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${categories.length ? `<select onchange="app.setFilter('okrCategory', this.value)" style="font-size:12px">
+          <option value="">Todos os pilares</option>
+          ${categories.map(c=>`<option value="${escapeHtml(c)}" ${state.filters.okrCategory===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+        </select>` : ''}
+        <button class="btn btn-ghost" onclick="app.importCxOkrs()">Importar 6 OKRs de CX</button>
+        <button class="btn btn-ghost" onclick="app.importBatch2Okrs()">Importar lote 2 (CX + Global)</button>
+        <button class="btn btn-primary" onclick="app.openOkrModal()">+ Novo OKR</button>
+      </div>
+    </div>
+    ${cards || emptyState('Nenhum OKR encontrado', 'Ajuste o filtro de pilar ou cadastre um novo OKR.')}`;
+}
+
+/* ================= Initiatives list ================= */
+function viewInitiatives(mineOnly){
+  const myName = state.profile && state.profile.name;
+  let list = state.initiatives.slice();
+  if(mineOnly){
+    if(!myName) return emptyState('Defina seu nome', 'Clique em "Definir nome" na barra lateral para ver suas iniciativas.');
+    list = list.filter(it => (it.ownerName||'').toLowerCase() === myName.toLowerCase());
+  } else {
+    if(state.filters.okr) list = list.filter(it => (it.okrIds||[]).includes(state.filters.okr));
+    if(state.filters.owner) list = list.filter(it => it.ownerName === state.filters.owner);
+    if(state.filters.status) list = list.filter(it => it.status === state.filters.status);
+    if(state.filters.q) list = list.filter(it => it.name.toLowerCase().includes(state.filters.q.toLowerCase()));
+  }
+
+  const owners = [...new Set(state.initiatives.map(it=>it.ownerName).filter(Boolean))].sort();
+  const filterBar = mineOnly ? '' : `
+    <div class="filters">
+      <select onchange="app.setFilter('okr', this.value)">
+        <option value="">Todos os OKRs</option>
+        ${state.okrs.map(o=>`<option value="${o.id}" ${state.filters.okr===o.id?'selected':''}>${escapeHtml(o.title)}</option>`).join('')}
+      </select>
+      <select onchange="app.setFilter('owner', this.value)">
+        <option value="">Todos os responsáveis</option>
+        ${owners.map(o=>`<option value="${escapeHtml(o)}" ${state.filters.owner===o?'selected':''}>${escapeHtml(o)}</option>`).join('')}
+      </select>
+      <select onchange="app.setFilter('status', this.value)">
+        <option value="">Todos os status</option>
+        ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${state.filters.status===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <input type="text" placeholder="Buscar por nome…" value="${escapeHtml(state.filters.q)}" oninput="app.setFilter('q', this.value)">
+    </div>`;
+
+  const rows = list.map(it => {
+    const okrChips = (it.okrIds||[]).map(id => { const o = state.okrs.find(x=>x.id===id); return o ? `<span class="chip">${escapeHtml(o.title)}</span>` : ''; }).join(' ');
+    const dots = (it.metrics||[]).map(m => { const kpi = state.kpis.find(k=>k.id===m.kpiId); return `<div class="pulse-dot ${dotClass(m.status)}" title="${kpi?escapeHtml(kpi.name):''}: ${healthLabel(m.status)}"></div>`; }).join('');
+    return `
+      <div class="init-row" onclick="app.openInitiative('${it.id}')">
+        <div class="init-top">
+          <div>
+            <div class="init-name">${escapeHtml(it.name)}</div>
+            <div class="init-meta">
+              <span class="chip chip-owner">${escapeHtml(it.ownerName||'Sem responsável')}</span>
+              <span class="chip chip-gray">${escapeHtml(it.status||'Não iniciada')}</span>
+              ${okrChips}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="badge ${healthBadgeClass(worstHealth(it.metrics))}">${it.progress||0}%</div>
+            <div class="pulse-row" style="justify-content:flex-end">${dots}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="topbar">
+      <div><h1>${mineOnly?'Minhas iniciativas':'Input de Iniciativas'}</h1><p>${list.length} de ${state.initiatives.length} iniciativa(s)${mineOnly?' atribuídas a você':''}.</p></div>
+      ${mineOnly?'':'<button class="btn btn-primary" onclick="app.openInitiativeModal()">+ Nova iniciativa</button>'}
+    </div>
+    ${filterBar}
+    ${rows || emptyState('Nenhuma iniciativa encontrada', mineOnly? 'Nenhuma iniciativa está atribuída ao seu nome ainda.' : 'Ajuste os filtros ou cadastre uma nova iniciativa.')}`;
+}
+
+/* ================= KPIs ================= */
+/* ================= Painel de Iniciativas (tracking) ================= */
+function viewTracking(){
+  const list = state.initiatives;
+  const total = list.length;
+  const byStatus = {};
+  STATUS_OPTIONS.forEach(s=>byStatus[s]=0);
+  list.forEach(it => byStatus[it.status||'Não iniciada']++);
+  const overdueCount = list.filter(isOverdue).length;
+  const healthCounts = {green:0,amber:0,red:0,gray:0};
+  list.forEach(it => healthCounts[worstHealth(it.metrics)]++);
+  const pctOnTrack = total ? Math.round((healthCounts.green/total)*100) : 0;
+
+  const productivityHtml = renderProductivity(list);
+
+  const kpis = `
+    <div class="grid stats-row" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${total}</div></div>
+      <div class="stat-card"><div class="stat-label">Em andamento</div><div class="stat-value">${byStatus['Em andamento']}</div></div>
+      <div class="stat-card"><div class="stat-label">Concluídas</div><div class="stat-value green">${byStatus['Concluída']}</div></div>
+      <div class="stat-card"><div class="stat-label">Bloqueadas</div><div class="stat-value red">${byStatus['Bloqueada']}</div></div>
+      <div class="stat-card"><div class="stat-label">Atrasadas</div><div class="stat-value ${overdueCount>0?'red':''}">${overdueCount}</div></div>
+      <div class="stat-card"><div class="stat-label">Em dia</div><div class="stat-value green">${pctOnTrack}%</div></div>
+    </div>`;
+
+  const ganttHtml = renderGantt(list);
+
+  const rows = list.slice().sort((a,b)=>{
+    const aOver = isOverdue(a), bOver = isOverdue(b);
+    if(aOver !== bOver) return aOver ? -1 : 1;
+    return (a.endDate||'9999').localeCompare(b.endDate||'9999');
+  }).map(it => {
+    const okrNames = (it.okrIds||[]).map(id=>{ const o=state.okrs.find(x=>x.id===id); return o?escapeHtml(o.title):''; }).filter(Boolean).join(', ') || '—';
+    const end = parseD(it.endDate);
+    let deadlineCell = '<span style="color:var(--ink-soft)">—</span>';
+    if(it.status==='Concluída') deadlineCell = `<span class="badge badge-green">Concluída</span>`;
+    else if(end){
+      const d = daysBetween(end, new Date());
+      deadlineCell = d>0 ? `<span class="badge badge-red">${d}d atrasado</span>` : `<span class="mono" style="color:var(--ink-soft)">${-d}d restantes</span>`;
+    }
+    const dSince = daysSinceActivity(it);
+    const staleCell = dSince===null ? '<span style="color:var(--ink-soft)">—</span>' : `<span class="${dSince>=STALE_DAYS?'badge badge-amber':'mono'}" style="${dSince>=STALE_DAYS?'':'color:var(--ink-soft)'}">${dSince}d</span>`;
+    return `
+      <tr style="cursor:pointer" onclick="app.openInitiative('${it.id}')">
+        <td>${escapeHtml(it.name)}</td>
+        <td><span class="chip chip-owner">${escapeHtml(it.ownerName||'—')}</span></td>
+        <td style="font-size:11.5px;color:var(--ink-soft)">${okrNames}</td>
+        <td><span class="chip chip-gray">${escapeHtml(it.status||'Não iniciada')}</span></td>
+        <td class="mono">${it.progress||0}%</td>
+        <td><span class="badge ${healthBadgeClass(worstHealth(it.metrics))}">${healthLabel(worstHealth(it.metrics))}</span></td>
+        <td class="mono" style="color:var(--ink-soft)">${fmtDate(it.startDate)}</td>
+        <td class="mono" style="color:var(--ink-soft)">${fmtDate(it.endDate)}</td>
+        <td>${deadlineCell}</td>
+        <td>${staleCell}</td>
+      </tr>`;
+  }).join('');
+
+  const table = list.length ? `
+    <div class="card" style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:900px">
+        <thead>
+          <tr style="text-align:left;border-bottom:1px solid var(--border)">
+            ${['Iniciativa','Responsável','OKR','Status','Progresso','Saúde','Início','Fim previsto','Prazo','Últ. atividade'].map(h=>`<th style="padding:8px 6px;font-weight:600;color:var(--ink-soft);font-size:11px;text-transform:uppercase;letter-spacing:.02em">${h}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>` : emptyState('Nenhuma iniciativa cadastrada', 'Cadastre iniciativas na aba Input de Iniciativas.');
+
+  // Carga por responsável
+  const owners = [...new Set(list.map(it=>it.ownerName).filter(Boolean))];
+  const ownerCards = owners.map(o => {
+    const mine = list.filter(it=>it.ownerName===o);
+    const counts = {green:0,amber:0,red:0,gray:0};
+    mine.forEach(it=>counts[worstHealth(it.metrics)]++);
+    return `
+      <div class="card" style="padding:12px 16px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="chip chip-owner">${escapeHtml(o)}</span>
+          <span class="mono" style="font-weight:600">${mine.length} iniciativa(s)</span>
+        </div>
+        <div class="pulse-row" style="margin-top:8px">
+          <span class="badge badge-green">${counts.green} ok</span>
+          <span class="badge badge-amber">${counts.amber} atenção</span>
+          <span class="badge badge-red">${counts.red} crítico</span>
+        </div>
+      </div>`;
+  }).join('') || emptyState('Sem responsáveis definidos', 'Atribua um responsável às iniciativas para ver a carga por pessoa.');
+
+  // Iniciativas esquecidas
+  const stale = list.filter(it => { const d = daysSinceActivity(it); return d!==null && d>=STALE_DAYS && it.status!=='Concluída'; })
+    .sort((a,b)=> daysSinceActivity(b)-daysSinceActivity(a));
+  const staleHtml = stale.length ? stale.map(it => `
+      <div class="init-row" onclick="app.openInitiative('${it.id}')" style="padding:10px 14px">
+        <div class="init-top">
+          <div>
+            <div class="init-name" style="font-size:13px">${escapeHtml(it.name)}</div>
+            <div class="init-meta"><span class="chip chip-owner">${escapeHtml(it.ownerName||'Sem responsável')}</span></div>
+          </div>
+          <span class="badge badge-amber">${daysSinceActivity(it)}d sem atividade</span>
+        </div>
+      </div>`).join('') : `<p class="card-desc">Nenhuma iniciativa esquecida — tudo teve atividade nos últimos ${STALE_DAYS} dias. 🎉</p>`;
+
+  return `
+    <div class="topbar">
+      <div><h1>Painel de Iniciativas</h1><p>Acompanhamento de prazos, saúde e carga de trabalho — atualizado em tempo real.</p></div>
+    </div>
+    ${kpis}
+    ${productivityHtml}
+    <h3 style="font-size:15px;margin-bottom:10px">Linha do tempo</h3>
+    <div class="card" style="overflow-x:auto">${ganttHtml}</div>
+    <h3 style="font-size:15px;margin:20px 0 10px">Todas as iniciativas</h3>
+    ${table}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;align-items:start">
+      <div>
+        <h3 style="font-size:15px;margin-bottom:10px">Carga por responsável</h3>
+        ${ownerCards}
+      </div>
+      <div>
+        <h3 style="font-size:15px;margin-bottom:10px">Esquecidas (sem atividade há ${STALE_DAYS}+ dias)</h3>
+        ${staleHtml}
+      </div>
+    </div>`;
+}
+function renderProductivity(list){
+  const completed = list.filter(it => it.status==='Concluída' && it.completedDate);
+
+  // Throughput dos últimos 6 meses
+  const months = [];
+  const now = new Date();
+  for(let i=5;i>=0;i--){ const d = new Date(now.getFullYear(), now.getMonth()-i, 1); months.push(d.toISOString().slice(0,7)); }
+  const throughputByMonth = months.map(m => ({
+    month: m,
+    count: completed.filter(it => it.completedDate && it.completedDate.slice(0,7)===m).length,
+  }));
+  const maxThroughput = Math.max(1, ...throughputByMonth.map(t=>t.count));
+  const throughputBars = throughputByMonth.map(t => `
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:4px">
+      <div class="mono" style="font-size:11px;font-weight:600">${t.count}</div>
+      <div style="width:100%;max-width:34px;background:var(--orange);border-radius:4px 4px 0 0;height:${Math.max(4,(t.count/maxThroughput)*70)}px"></div>
+      <div style="font-size:9px;color:var(--ink-soft)">${monthLabel(t.month)}</div>
+    </div>`).join('');
+  const lastMonthCount = throughputByMonth[throughputByMonth.length-1].count;
+
+  // Ciclo médio (dias entre início e conclusão)
+  const cycles = completed.filter(it=>it.startDate).map(it => daysBetween(parseD(it.startDate), parseD(it.completedDate)));
+  const avgCycle = cycles.length ? Math.round(cycles.reduce((a,b)=>a+b,0)/cycles.length) : null;
+
+  // % entregue no prazo original
+  const withDeadline = completed.filter(it=>it.endDate);
+  const onTime = withDeadline.filter(it => parseD(it.completedDate) <= parseD(it.endDate));
+  const onTimeRate = withDeadline.length ? Math.round((onTime.length/withDeadline.length)*100) : null;
+
+  return `
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="font-size:14px;margin-bottom:12px">Produtividade</h3>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+        <div class="stat-card">
+          <div class="stat-label">Concluídas este mês</div>
+          <div class="stat-value">${lastMonthCount}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ciclo médio</div>
+          <div class="stat-value">${avgCycle!==null ? avgCycle+' dias' : '—'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Entregue no prazo original</div>
+          <div class="stat-value ${onTimeRate!==null && onTimeRate<70?'amber':'green'}">${onTimeRate!==null ? onTimeRate+'%' : '—'}</div>
+        </div>
+      </div>
+      <div class="card-desc" style="margin-bottom:6px;font-weight:600;color:var(--ink)">Iniciativas concluídas por mês</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:100px">${throughputBars}</div>
+    </div>`;
+}
+function renderGantt(list){
+  const items = list.filter(it => parseD(it.startDate) && parseD(it.endDate));
+  if(!items.length) return emptyState('Sem datas suficientes', 'Preencha início e fim previsto nas iniciativas para ver a linha do tempo.');
+  const today = new Date();
+  let minD = new Date(Math.min(...items.map(it=>parseD(it.startDate))));
+  let maxD = new Date(Math.max(...items.map(it=>parseD(it.endDate)).concat([today.getTime()])));
+  minD = new Date(minD.getTime() - 3*86400000);
+  maxD = new Date(maxD.getTime() + 3*86400000);
+  const span = maxD - minD;
+  const frac = d => (d - minD) / span;
+  const todayFrac = (frac(today)*100).toFixed(2);
+
+  // ticks mensais
+  const ticks = [];
+  let cursor = new Date(minD.getFullYear(), minD.getMonth(), 1);
+  while(cursor < maxD){
+    if(cursor >= minD) ticks.push(new Date(cursor));
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
+  }
+  const monthNames = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const tickHtml = ticks.map(t => `<span style="position:absolute;left:${(frac(t)*100).toFixed(2)}%;font-size:9.5px;color:var(--ink-soft);transform:translateX(-4px)">${monthNames[t.getMonth()]}/${String(t.getFullYear()).slice(2)}</span>`).join('');
+
+  const sorted = items.slice().sort((a,b)=> parseD(a.startDate)-parseD(b.startDate));
+  const rowsHtml = sorted.map(it => {
+    const s = frac(parseD(it.startDate))*100, e = frac(parseD(it.endDate))*100;
+    const color = `var(--${worstHealth(it.metrics)})`;
+    return `
+      <div class="gantt-row">
+        <div class="gantt-label" title="${escapeHtml(it.name)}">${escapeHtml(it.name)}</div>
+        <div class="gantt-track">
+          <div class="gantt-bar" style="left:${s.toFixed(2)}%;width:${Math.max(1,e-s).toFixed(2)}%;background:${color}" onclick="app.openInitiative('${it.id}')" title="${escapeHtml(it.name)} · ${fmtDate(it.startDate)} → ${fmtDate(it.endDate)}"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="gantt-wrap">
+      <div style="display:flex;margin-bottom:6px">
+        <div style="width:190px;flex-shrink:0"></div>
+        <div style="flex:1;position:relative;height:14px">${tickHtml}</div>
+      </div>
+      ${rowsHtml}
+      <div style="position:absolute;inset:0;display:flex;pointer-events:none;top:26px">
+        <div style="width:190px;flex-shrink:0"></div>
+        <div style="flex:1;position:relative">
+          <div style="position:absolute;left:${todayFrac}%;top:0;bottom:0;border-left:1.5px dashed var(--red)"></div>
+          <div style="position:absolute;left:${todayFrac}%;top:-16px;font-size:9px;color:var(--red);transform:translateX(-50%);background:#fff;padding:0 3px">hoje</div>
+        </div>
+      </div>
+    </div>`;
+}
+function viewKpis(){
+  const rows = state.kpis.map(k => {
+    const usages = [];
+    state.initiatives.forEach(it => (it.metrics||[]).forEach(m => { if(m.kpiId===k.id) usages.push(m.status); }));
+    const counts = {green:0,amber:0,red:0,gray:0};
+    usages.forEach(s=>counts[s||'gray']++);
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">${escapeHtml(k.name)}</div>
+            <div class="card-desc">${escapeHtml(k.description||'')} ${k.unit?('· unidade: '+escapeHtml(k.unit)):''}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="app.openKpiModal('${k.id}')">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="app.deleteKpi('${k.id}')">Excluir</button>
+          </div>
+        </div>
+        <div class="card-desc" style="margin-bottom:6px">Usada em ${usages.length} iniciativa(s)</div>
+        <div class="pulse-row">
+          <span class="badge badge-green">${counts.green} ok</span>
+          <span class="badge badge-amber">${counts.amber} atenção</span>
+          <span class="badge badge-red">${counts.red} crítico</span>
+          <span class="badge badge-gray">${counts.gray} sem avaliação</span>
+        </div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="topbar">
+      <div><h1>Métricas de saúde</h1><p>Lista de KPIs disponíveis para avaliar iniciativas. ${state.kpis.length} cadastrada(s).</p></div>
+      <button class="btn btn-primary" onclick="app.openKpiModal()">+ Nova métrica</button>
+    </div>
+    ${rows || emptyState('Nenhuma métrica cadastrada', 'Cadastre as métricas de saúde que o time vai usar para avaliar iniciativas.')}`;
+}
+
+/* ================= Modals ================= */
+function closeModal(){ document.getElementById('modalRoot').innerHTML = ''; }
+
+function openIdentityModal(forced){
+  const name = state.profile ? state.profile.name : '';
+  const owners = [...new Set(state.initiatives.map(it=>it.ownerName).filter(Boolean))].sort();
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay">
+      <div class="modal">
+        <div class="modal-head"><h3>Quem é você?</h3>${forced?'':'<button class="modal-close" onclick="app.closeModal()">×</button>'}</div>
+        <p class="card-desc" style="margin-bottom:14px">Isso identifica suas iniciativas e permite que você as edite. Outras pessoas continuam podendo ver tudo e comentar.</p>
+        <div class="field">
+          <label>Seu nome</label>
+          <input type="text" id="identityInput" list="ownerSuggestions" value="${escapeHtml(name)}" placeholder="Ex: Ana Souza" style="width:100%">
+          <datalist id="ownerSuggestions">${owners.map(o=>`<option value="${escapeHtml(o)}">`).join('')}</datalist>
+        </div>
+        <button class="btn btn-primary" onclick="app.saveIdentity()">Salvar</button>
+      </div>
+    </div>`;
+  document.getElementById('identityInput').focus();
+}
+async function saveIdentity(){
+  const val = document.getElementById('identityInput').value.trim();
+  if(!val) return;
+  state.profile = { name: val };
+  await savePersonal(KEYS.profile, state.profile);
+  renderIdentity();
+  closeModal();
+  renderMain();
+}
+
+function openOkrModal(id){
+  const okr = id ? state.okrs.find(o=>o.id===id) : { id: genId('okr'), title:'', category:'', ownerName:'', description:'', keyResults:[] };
+  const isNew = !id;
+  const krHtml = (okr.keyResults||[]).map((k,i) => krRowHtml(k, i)).join('');
+  const owners = [...new Set([...state.okrs.map(o=>o.ownerName), ...state.initiatives.map(it=>it.ownerName)].filter(Boolean))].sort();
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay">
+      <div class="modal" style="max-width:620px">
+        <div class="modal-head"><h3>${isNew?'Novo OKR':'Editar OKR'}</h3><button class="modal-close" onclick="app.closeModal()">×</button></div>
+        <div class="field-row">
+          <div class="field" style="flex:2"><label>Objetivo</label><input type="text" id="okrTitle" value="${escapeHtml(okr.title)}" placeholder="Ex: Aumentar retenção de clientes" style="width:100%"></div>
+          <div class="field"><label>Categoria / Pilar</label><input type="text" id="okrCategory" value="${escapeHtml(okr.category||'')}" placeholder="Ex: CX" style="width:100%"></div>
+        </div>
+        <div class="field"><label>Responsável pelo OKR</label><input type="text" id="okrOwner" value="${escapeHtml(okr.ownerName||'')}" list="okrOwnerSuggestions" placeholder="Quem atualiza este OKR todo mês" style="width:100%">
+          <datalist id="okrOwnerSuggestions">${owners.map(o=>`<option value="${escapeHtml(o)}">`).join('')}</datalist>
+        </div>
+        <div class="field"><label>Descrição (opcional)</label><textarea id="okrDesc" rows="2" style="width:100%">${escapeHtml(okr.description||'')}</textarea></div>
+        <label>Resultados-chave</label>
+        <p class="card-desc" style="margin-top:-4px;margin-bottom:8px">Baseline = ponto de partida · Atual = valor mais recente · Meta = onde quer chegar. Atualizações mensais são registradas depois, direto no card do OKR.</p>
+        <div id="krList">${krHtml}</div>
+        <button class="btn btn-ghost btn-sm" onclick="app.addKrRow()">+ Adicionar resultado-chave</button>
+        <div class="divider"></div>
+        <div style="display:flex;justify-content:space-between">
+          <span></span>
+          <button class="btn btn-primary" onclick="app.saveOkr('${okr.id}', ${isNew})">Salvar OKR</button>
+        </div>
+      </div>
+    </div>`;
+  window._krCounter = (okr.keyResults||[]).length;
+}
+function krRowHtml(k, i){
+  return `
+    <div class="kr-row" data-kr-idx="${i}">
+      <input type="hidden" class="kr-id" value="${k&&k.id?k.id:genId('kr')}">
+      <div class="field" style="flex:2;min-width:180px"><label>Descrição</label><input type="text" class="kr-text" value="${escapeHtml(k?k.text:'')}" placeholder="Descrição do resultado-chave"></div>
+      <div class="field" style="width:90px"><label>Baseline</label><input type="number" class="kr-baseline" value="${k&&k.baseline!==undefined?k.baseline:''}"></div>
+      <div class="field" style="width:90px"><label>Atual</label><input type="number" class="kr-current" value="${k?k.current||'':''}"></div>
+      <div class="field" style="width:90px"><label>Meta</label><input type="number" class="kr-target" value="${k?k.target||'':''}"></div>
+      <div class="field" style="width:80px"><label>Unidade</label><input type="text" class="kr-unit" value="${escapeHtml(k?k.unit||'':'')}" placeholder="%"></div>
+      <button class="remove-x" style="align-self:center;margin-top:18px" onclick="this.closest('.kr-row').remove()">✕</button>
+    </div>`;
+}
+function addKrRow(){
+  window._krCounter = (window._krCounter||0)+1;
+  document.getElementById('krList').insertAdjacentHTML('beforeend', krRowHtml(null, window._krCounter));
+}
+async function saveOkr(id, isNew){
+  const title = document.getElementById('okrTitle').value.trim();
+  if(!title){ alert('Informe o título do objetivo.'); return; }
+  const category = document.getElementById('okrCategory').value.trim();
+  const ownerName = document.getElementById('okrOwner').value.trim();
+  const description = document.getElementById('okrDesc').value.trim();
+  const existingOkr = state.okrs.find(o=>o.id===id);
+  const keyResults = [...document.querySelectorAll('#krList .kr-row')].map(row => {
+    const krId = row.querySelector('.kr-id').value;
+    const prior = existingOkr ? (existingOkr.keyResults||[]).find(k=>k.id===krId) : null;
+    return {
+      id: krId,
+      text: row.querySelector('.kr-text').value.trim(),
+      baseline: parseFloat(row.querySelector('.kr-baseline').value)||0,
+      current: parseFloat(row.querySelector('.kr-current').value)||0,
+      target: parseFloat(row.querySelector('.kr-target').value)||0,
+      unit: row.querySelector('.kr-unit').value.trim(),
+      monthlyUpdates: prior ? (prior.monthlyUpdates||[]) : [],
+    };
+  }).filter(k=>k.text);
+  if(isNew){
+    state.okrs.push({ id, title, category, ownerName, description, keyResults });
+  } else {
+    const okr = state.okrs.find(o=>o.id===id);
+    okr.title = title; okr.category = category; okr.ownerName = ownerName; okr.description = description; okr.keyResults = keyResults;
+  }
+  await saveShared(KEYS.okrs, state.okrs);
+  closeModal();
+  renderMain();
+}
+async function addMonthlyUpdate(okrId, krId){
+  const monthInput = document.getElementById('month_'+okrId+'_'+krId);
+  const valInput = document.getElementById('val_'+okrId+'_'+krId);
+  const month = monthInput.value;
+  const value = parseFloat(valInput.value);
+  if(!month || isNaN(value)){ alert('Informe o mês e o valor.'); return; }
+  const okr = state.okrs.find(o=>o.id===okrId);
+  const kr = okr.keyResults.find(k=>k.id===krId);
+  kr.monthlyUpdates = kr.monthlyUpdates || [];
+  const existing = kr.monthlyUpdates.find(u=>u.month===month);
+  if(existing) existing.value = value; else kr.monthlyUpdates.push({month, value});
+  const latest = sortedMonthlyUpdates(kr)[0];
+  kr.current = latest ? latest.value : kr.current;
+  await saveShared(KEYS.okrs, state.okrs);
+  renderMain();
+}
+function buildCxOkrs(){
+  const mk = (title, text, baseline, target, monthly) => {
+    const sorted = monthly.slice().sort((a,b)=> a.month < b.month ? -1 : 1);
+    const current = sorted.length ? sorted[sorted.length-1].value : baseline;
+    return {
+      id: genId('okr'),
+      title,
+      category: 'CX',
+      description: '',
+      keyResults: [{
+        id: genId('kr'),
+        text,
+        baseline, target, current, unit: '%',
+        monthlyUpdates: monthly,
+      }],
+    };
+  };
+  return [
+    mk('CSAT %4-5 (CAIO + Humano) Creators', 'Aumentar o CSAT (%4-5) de tickets de creators, de 82% para 90%', 82, 90, [
+      {month:'2025-11',value:84.79},{month:'2025-12',value:82.35},{month:'2026-01',value:84.09},
+      {month:'2026-02',value:82.54},{month:'2026-03',value:83.31},{month:'2026-04',value:81.89},
+      {month:'2026-05',value:82.66},{month:'2026-07',value:84.49},
+    ]),
+    mk('HSAT %4-5 Creators', 'Aumentar o HSAT (%4-5) de tickets de creators, de 85% para 90%', 85, 90, [
+      {month:'2025-11',value:84.79},{month:'2025-12',value:82.35},{month:'2026-01',value:84.09},
+      {month:'2026-02',value:85.72},{month:'2026-03',value:85.01},{month:'2026-04',value:83.61},
+      {month:'2026-05',value:85.12},{month:'2026-07',value:86.78},
+    ]),
+    mk('MSAT %4-5 Creators', 'Aumentar o MSAT (%4-5) de tickets de creators, de 73% para 85%', 73, 85, [
+      {month:'2026-01',value:77.13},{month:'2026-02',value:79.90},{month:'2026-03',value:75.54},
+      {month:'2026-04',value:71.45},{month:'2026-05',value:73.32},{month:'2026-06',value:74.33},
+      {month:'2026-07',value:77.49},
+    ]),
+    mk('SLA N2 Full Resolution', 'Aumentar SLA de full resolution de N2, de 77% para 90%', 77, 90, [
+      {month:'2025-11',value:69.86},{month:'2025-12',value:64.23},{month:'2026-01',value:67.93},
+      {month:'2026-02',value:69.25},{month:'2026-03',value:65.59},{month:'2026-04',value:73.41},
+      {month:'2026-05',value:77.02},{month:'2026-07',value:70.36},
+    ]),
+    mk('SLA N3 Full Resolution', 'Aumentar SLA de full resolution de N3, de 56% para 80%', 56, 80, [
+      {month:'2025-11',value:44.74},{month:'2025-12',value:42.49},{month:'2026-01',value:50.23},
+      {month:'2026-02',value:47.84},{month:'2026-03',value:54.29},{month:'2026-04',value:52.91},
+      {month:'2026-05',value:62.98},{month:'2026-07',value:69.37},
+    ]),
+    mk('Contact Rate Creators Segmentados', 'Reduzir o contact rate de creators segmentados, de 8,5% para 5%', 8.5, 5, [
+      {month:'2026-01',value:10.40},{month:'2026-02',value:9.38},{month:'2026-03',value:10.35},
+      {month:'2026-04',value:9.34},{month:'2026-05',value:8.77},{month:'2026-06',value:8.11},
+      {month:'2026-07',value:9.12},
+    ]),
+  ];
+}
+async function importCxOkrs(){
+  if(state.okrs.some(o=>o.category==='CX')){
+    if(!confirm('Já existem OKRs importados da categoria CX. Importar de novo vai criar duplicados. Continuar?')) return;
+  }
+  state.okrs.push(...buildCxOkrs());
+  await saveShared(KEYS.okrs, state.okrs);
+  renderMain();
+  alert('6 OKRs de CX importados! Revise os meses marcados como "sem dados" (ex: jun/26 em alguns KRs) e ajuste se necessário — a leitura foi feita a partir da imagem do gráfico.');
+}
+function buildBatch2NewOkrs(){
+  const mkGlobal = (title, category, text, baseline, target, unit, monthly) => {
+    const sorted = monthly.slice().sort((a,b)=> a.month < b.month ? -1 : 1);
+    const current = sorted.length ? sorted[sorted.length-1].value : baseline;
+    return {
+      id: genId('okr'), title, category, description: '',
+      keyResults: [{ id: genId('kr'), text, baseline, target, current, unit, monthlyUpdates: monthly }],
+    };
+  };
+  return [
+    mkGlobal('CAIO Deflection', 'CX', 'Aumentar o percentual de deflexão do CAIO, de 50% para 70%', 50, 70, '%', [
+      {month:'2025-11',value:22.40},{month:'2025-12',value:27.06},{month:'2026-01',value:32.51},
+      {month:'2026-02',value:34.80},{month:'2026-03',value:36.59},{month:'2026-04',value:45.91},
+      {month:'2026-05',value:52.41},{month:'2026-07',value:54.93},
+    ]),
+    mkGlobal('Outsourced % (atendimento humano)', 'CX', 'Aumentar o percentual de tickets atendidos pela BPO, de 25% para 35%', 25, 35, '%', [
+      {month:'2025-11',value:25.37},{month:'2025-12',value:28.01},{month:'2026-01',value:29.52},
+      {month:'2026-02',value:30.72},{month:'2026-03',value:25.65},{month:'2026-04',value:25.24},
+      {month:'2026-05',value:25.60},{month:'2026-07',value:24.24},
+    ]),
+    mkGlobal('Share de tickets síncronos (atendimento humano)', 'CX', 'Aumentar o percentual de tickets síncronos, de 42% para 60%', 42, 60, '%', [
+      {month:'2025-11',value:40.32},{month:'2025-12',value:36.94},{month:'2026-01',value:35.27},
+      {month:'2026-02',value:33.59},{month:'2026-03',value:36.41},{month:'2026-04',value:39.61},
+      {month:'2026-05',value:44.41},{month:'2026-07',value:47.54},
+    ]),
+    mkGlobal('Reduzir CSAT (%1-2) de tickets de creators', 'Global', 'Reduzir o CSAT (%1-2) de tickets de creators, de 14% para 5%', 14, 5, '%', [
+      {month:'2025-11',value:11.59},{month:'2025-12',value:13.95},{month:'2026-01',value:12.63},
+      {month:'2026-02',value:13.95},{month:'2026-03',value:12.78},{month:'2026-04',value:13.86},
+      {month:'2026-05',value:14.26},{month:'2026-06',value:13.81},{month:'2026-07',value:13.54},
+      {month:'2026-08',value:11.68},
+    ]),
+    mkGlobal('Reduzir SLA de tickets de creators escalados para N3', 'Global', 'Reduzir o SLA de tickets de creators escalados para N3, de 14 dias para 3 dias', 14, 3, 'dias', [
+      {month:'2025-11',value:10},{month:'2025-12',value:12},{month:'2026-01',value:15},
+      {month:'2026-02',value:11},{month:'2026-03',value:10},{month:'2026-04',value:14},
+      {month:'2026-05',value:14},{month:'2026-06',value:9},{month:'2026-07',value:5},
+    ]),
+    mkGlobal('Reduzir volume de contatos (Conta-Alterações, Conta-Registro, Receita-Saque)', 'Global', 'Reduzir em 80% o volume de contatos de creators relacionados a Conta - Alterações, Conta - Registro e Receita - Saque', 12500, 2500, 'tickets', [
+      {month:'2025-11',value:9540},{month:'2025-12',value:9248},{month:'2026-01',value:12330},
+      {month:'2026-02',value:12651},{month:'2026-03',value:13587},{month:'2026-04',value:12863},
+      {month:'2026-05',value:12736},{month:'2026-06',value:12419},{month:'2026-07',value:14421},
+      {month:'2026-08',value:8080},
+    ]),
+  ];
+}
+async function importBatch2Okrs(){
+  // Corrige a série do CSAT (a imagem "Global OKRs" trouxe os dados completos nov/25-ago/26)
+  const existingCsat = state.okrs.find(o => o.title === 'CSAT %4-5 (CAIO + Humano) Creators');
+  if(existingCsat && existingCsat.keyResults && existingCsat.keyResults[0]){
+    existingCsat.keyResults[0].monthlyUpdates = [
+      {month:'2025-11',value:84.79},{month:'2025-12',value:82.35},{month:'2026-01',value:84.09},
+      {month:'2026-02',value:82.54},{month:'2026-03',value:83.31},{month:'2026-04',value:82.19},
+      {month:'2026-05',value:81.89},{month:'2026-06',value:82.09},{month:'2026-07',value:82.66},
+      {month:'2026-08',value:84.49},
+    ];
+    existingCsat.keyResults[0].current = 84.49;
+  }
+  const newOnes = buildBatch2NewOkrs().filter(o => !state.okrs.some(x=>x.title===o.title));
+  state.okrs.push(...newOnes);
+  await saveShared(KEYS.okrs, state.okrs);
+  renderMain();
+  alert('Importado! Adicionei 3 novos OKRs de CX (KR 1.7-1.9) e 3 de Global, e corrigi a série mensal do CSAT com os dados completos. Confira o KR "Reduzir volume de contatos": simplifiquei para um valor total por mês (sem separar por Conta-Alterações/Registro/Receita-Saque) e estimei a meta em 2.500 com base no "reduzir em 80%" do baseline 12.500 — o rótulo da meta no gráfico original estava cortado, vale confirmar.');
+}
+async function deleteOkr(id){
+  if(!confirm('Excluir este OKR? As iniciativas vinculadas não serão excluídas.')) return;
+  state.okrs = state.okrs.filter(o=>o.id!==id);
+  state.initiatives.forEach(it => { it.okrIds = (it.okrIds||[]).filter(x=>x!==id); });
+  await saveShared(KEYS.okrs, state.okrs);
+  await saveShared(KEYS.initiatives, state.initiatives);
+  renderMain();
+}
+
+function openKpiModal(id){
+  const kpi = id ? state.kpis.find(k=>k.id===id) : { id: genId('kpi'), name:'', unit:'', description:'' };
+  const isNew = !id;
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay">
+      <div class="modal">
+        <div class="modal-head"><h3>${isNew?'Nova métrica de saúde':'Editar métrica'}</h3><button class="modal-close" onclick="app.closeModal()">×</button></div>
+        <div class="field"><label>Nome</label><input type="text" id="kpiName" value="${escapeHtml(kpi.name)}" style="width:100%" placeholder="Ex: NPS, Burn Rate, SLA..."></div>
+        <div class="field-row">
+          <div class="field"><label>Unidade (opcional)</label><input type="text" id="kpiUnit" value="${escapeHtml(kpi.unit||'')}" placeholder="%, R$, dias..." style="width:100%"></div>
+        </div>
+        <div class="field"><label>Descrição (opcional)</label><textarea id="kpiDesc" rows="2" style="width:100%">${escapeHtml(kpi.description||'')}</textarea></div>
+        <button class="btn btn-primary" onclick="app.saveKpi('${kpi.id}', ${isNew})">Salvar</button>
+      </div>
+    </div>`;
+}
+async function saveKpi(id, isNew){
+  const name = document.getElementById('kpiName').value.trim();
+  if(!name){ alert('Informe o nome da métrica.'); return; }
+  const unit = document.getElementById('kpiUnit').value.trim();
+  const description = document.getElementById('kpiDesc').value.trim();
+  if(isNew){ state.kpis.push({ id, name, unit, description }); }
+  else { const k = state.kpis.find(x=>x.id===id); k.name=name; k.unit=unit; k.description=description; }
+  await saveShared(KEYS.kpis, state.kpis);
+  closeModal();
+  renderMain();
+}
+async function deleteKpi(id){
+  if(!confirm('Excluir esta métrica? Ela será removida das iniciativas que a utilizam.')) return;
+  state.kpis = state.kpis.filter(k=>k.id!==id);
+  state.initiatives.forEach(it => { it.metrics = (it.metrics||[]).filter(m=>m.kpiId!==id); });
+  await saveShared(KEYS.kpis, state.kpis);
+  await saveShared(KEYS.initiatives, state.initiatives);
+  renderMain();
+}
+
+function openInitiativeModal(){
+  const it = { id: genId('init'), name:'', description:'', ownerName: state.profile?state.profile.name:'', okrIds:[], status:'Não iniciada', progress:0, startDate: todayInput(), endDate:'' };
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay">
+      <div class="modal" style="max-width:600px">
+        <div class="modal-head"><h3>Nova iniciativa</h3><button class="modal-close" onclick="app.closeModal()">×</button></div>
+        <div class="field"><label>Nome</label><input type="text" id="initName" style="width:100%" placeholder="Ex: Implantar novo onboarding"></div>
+        <div class="field"><label>Descrição</label><textarea id="initDescField" rows="2" style="width:100%"></textarea></div>
+        <div class="field-row">
+          <div class="field"><label>Responsável</label><input type="text" id="initOwner" value="${escapeHtml(it.ownerName)}" list="ownerSuggestions2" style="width:100%">
+            <datalist id="ownerSuggestions2">${[...new Set(state.initiatives.map(x=>x.ownerName).filter(Boolean))].map(o=>`<option value="${escapeHtml(o)}">`).join('')}</datalist>
+          </div>
+          <div class="field"><label>Status</label>
+            <select id="initStatus" style="width:100%">${STATUS_OPTIONS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Início</label><input type="date" id="initStart" value="${it.startDate}" style="width:100%"></div>
+          <div class="field"><label>Previsão de término</label><input type="date" id="initEnd" style="width:100%"></div>
+        </div>
+        <div class="field"><label>Vincular a OKRs</label>
+          <div class="checkbox-list">
+            ${state.okrs.map(o=>`<label class="checkbox-item"><input type="checkbox" value="${o.id}" class="okr-check"> ${escapeHtml(o.title)}</label>`).join('') || '<span class="card-desc">Nenhum OKR cadastrado ainda.</span>'}
+          </div>
+        </div>
+        <div class="field"><label>Métricas de saúde vinculadas</label>
+          <div class="checkbox-list">
+            ${state.kpis.map(k=>`<label class="checkbox-item"><input type="checkbox" value="${k.id}" class="kpi-check" onchange="app.toggleMetricRow(this)"> ${escapeHtml(k.name)}</label>`).join('') || '<span class="card-desc">Nenhuma métrica cadastrada ainda.</span>'}
+          </div>
+          <div id="newMetricRows" style="margin-top:8px"></div>
+        </div>
+        <button class="btn btn-primary" onclick="app.saveNewInitiative()">Criar iniciativa</button>
+      </div>
+    </div>`;
+}
+function toggleMetricRow(cb){
+  const kpiId = cb.value;
+  const kpi = state.kpis.find(k=>k.id===kpiId);
+  const container = document.getElementById('newMetricRows');
+  if(cb.checked){
+    container.insertAdjacentHTML('beforeend', `
+      <div class="metric-row" data-kpi-id="${kpiId}">
+        <div class="field" style="flex:1.4;min-width:160px"><label>Métrica</label><div style="padding:8px 0;font-weight:600;font-size:13px">${escapeHtml(kpi.name)}</div></div>
+        <div class="field" style="width:170px"><label>Status</label><select class="metric-status">${HEALTH_OPTIONS.map(h=>`<option value="${h.v}">${h.label}</option>`).join('')}</select></div>
+        <div class="field" style="width:100px"><label>Valor</label><input type="text" class="metric-value" placeholder="valor"></div>
+      </div>`);
+  } else {
+    const row = container.querySelector(`.metric-row[data-kpi-id="${kpiId}"]`);
+    if(row) row.remove();
+  }
+}
+async function saveNewInitiative(){
+  const name = document.getElementById('initName').value.trim();
+  if(!name){ alert('Informe o nome da iniciativa.'); return; }
+  const okrIds = [...document.querySelectorAll('.okr-check:checked')].map(c=>c.value);
+  const metrics = [...document.querySelectorAll('#newMetricRows .metric-row')].map(row => ({
+    kpiId: row.getAttribute('data-kpi-id'),
+    status: row.querySelector('.metric-status').value,
+    value: row.querySelector('.metric-value').value.trim(),
+  }));
+  const it = {
+    id: genId('init'),
+    name,
+    description: document.getElementById('initDescField').value.trim(),
+    ownerName: document.getElementById('initOwner').value.trim(),
+    status: document.getElementById('initStatus').value,
+    startDate: document.getElementById('initStart').value,
+    endDate: document.getElementById('initEnd').value,
+    progress: 0,
+    okrIds,
+    metrics,
+    updates: [],
+  };
+  state.initiatives.push(it);
+  await saveShared(KEYS.initiatives, state.initiatives);
+  closeModal();
+  renderMain();
+}
+
+/* Initiative detail modal */
+function openInitiative(id){
+  state.openInitiativeId = id;
+  renderInitiativeDetail();
+}
+function canEdit(it){
+  const me = state.profile && state.profile.name;
+  return !!me && it.ownerName && me.toLowerCase() === it.ownerName.toLowerCase();
+}
+function renderInitiativeDetail(){
+  const it = state.initiatives.find(x=>x.id===state.openInitiativeId);
+  if(!it) return;
+  const editable = canEdit(it);
+  const okrOptions = state.okrs.map(o=>`<label class="checkbox-item"><input type="checkbox" value="${o.id}" class="okr-check-edit" ${it.okrIds.includes(o.id)?'checked':''} ${editable?'':'disabled'}> ${escapeHtml(o.title)}</label>`).join('') || '<span class="card-desc">Nenhum OKR cadastrado.</span>';
+
+  const metricRows = (it.metrics||[]).map((m,i) => metricRowHtml(m, i, editable)).join('');
+  const availableKpis = state.kpis;
+
+  const updates = (it.updates||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(u => `
+    <div class="update-item">
+      <div class="update-meta">${escapeHtml(u.author)} · ${new Date(u.date).toLocaleDateString('pt-BR')}</div>
+      <div>${escapeHtml(u.text)}</div>
+    </div>`).join('') || '<p class="card-desc">Nenhuma atualização ainda.</p>';
+
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay">
+      <div class="modal" style="max-width:680px">
+        <div class="modal-head">
+          <h3>${editable? '<input type="text" id="editName" value="'+escapeHtml(it.name)+'" style="font-size:16px;font-weight:600;border:none;padding:0;width:100%">' : escapeHtml(it.name)}</h3>
+          <button class="modal-close" onclick="app.closeModal()">×</button>
+        </div>
+        ${editable? '' : `<div class="lock-note">🔒 Somente <strong>${escapeHtml(it.ownerName||'o responsável')}</strong> pode editar os campos desta iniciativa. Você pode deixar um comentário abaixo.</div>`}
+
+        <div class="field"><label>Descrição</label>
+          ${editable? `<textarea id="editDesc" rows="2" style="width:100%">${escapeHtml(it.description||'')}</textarea>` : `<p class="card-desc">${escapeHtml(it.description||'—')}</p>`}
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Responsável</label>
+            ${editable? `<input type="text" id="editOwner" value="${escapeHtml(it.ownerName||'')}" style="width:100%">` : `<span class="chip chip-owner">${escapeHtml(it.ownerName||'Sem responsável')}</span>`}
+          </div>
+          <div class="field"><label>Status</label>
+            ${editable? `<select id="editStatus" style="width:100%">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${it.status===s?'selected':''}>${s}</option>`).join('')}</select>` : `<span class="chip chip-gray">${escapeHtml(it.status)}</span>`}
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Início</label>${editable? `<input type="date" id="editStart" value="${it.startDate||''}" style="width:100%">` : `<span>${fmtDate(it.startDate)}</span>`}</div>
+          <div class="field"><label>Previsão de término</label>${editable? `<input type="date" id="editEnd" value="${it.endDate||''}" style="width:100%">` : `<span>${fmtDate(it.endDate)}</span>`}</div>
+          <div class="field"><label>Progresso (%)</label>${editable? `<input type="number" id="editProgress" min="0" max="100" value="${it.progress||0}" style="width:100%">` : `<span>${it.progress||0}%</span>`}</div>
+        </div>
+
+        <div class="field"><label>OKRs vinculados</label><div class="checkbox-list">${okrOptions}</div></div>
+
+        <div class="divider"></div>
+        <label>Métricas de saúde acompanhadas</label>
+        <div id="metricList">${metricRows || '<p class="card-desc">Nenhuma métrica vinculada ainda.</p>'}</div>
+        ${editable? `<select id="addMetricSelect" style="margin-top:6px">
+            <option value="">+ Vincular métrica de saúde…</option>
+            ${availableKpis.filter(k=>!(it.metrics||[]).some(m=>m.kpiId===k.id)).map(k=>`<option value="${k.id}">${escapeHtml(k.name)}</option>`).join('')}
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="app.addMetricToInitiative()">Adicionar</button>` : ''}
+
+        <div class="divider"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px">
+          ${editable? `<button class="btn btn-danger btn-sm" onclick="app.deleteInitiative('${it.id}')">Excluir iniciativa</button><button class="btn btn-primary" onclick="app.saveInitiativeDetail()">Salvar alterações</button>` : ''}
+        </div>
+
+        <label>Atualizações / comentários</label>
+        <div style="margin:8px 0">${updates}</div>
+        <div class="field-row">
+          <input type="text" id="newUpdateText" placeholder="Escreva uma atualização ou comentário…" style="flex:1">
+          <button class="btn btn-primary btn-sm" onclick="app.addUpdate('${it.id}')">Enviar</button>
+        </div>
+      </div>
+    </div>`;
+}
+function metricRowHtml(m, i, editable){
+  const kpi = state.kpis.find(k=>k.id===m.kpiId);
+  return `
+    <div class="metric-row" data-metric-idx="${i}">
+      <div class="field" style="flex:1.4;min-width:160px"><label>Métrica</label><div style="padding:8px 0;font-weight:600">${kpi?escapeHtml(kpi.name):'(métrica removida)'}</div></div>
+      <div class="field" style="width:170px"><label>Status</label>
+        ${editable? `<select class="metric-status">${HEALTH_OPTIONS.map(h=>`<option value="${h.v}" ${m.status===h.v?'selected':''}>${h.label}</option>`).join('')}</select>`
+          : `<span class="badge ${healthBadgeClass(m.status)}">${healthLabel(m.status)}</span>`}
+      </div>
+      <div class="field" style="width:100px"><label>Valor</label>${editable? `<input type="text" class="metric-value" value="${escapeHtml(m.value||'')}">` : `<span>${escapeHtml(m.value||'—')}</span>`}</div>
+      ${editable? `<button class="remove-x" style="align-self:center;margin-top:18px" onclick="this.closest('.metric-row').remove()">✕</button>` : ''}
+    </div>`;
+}
+function addMetricToInitiative(){
+  const sel = document.getElementById('addMetricSelect');
+  const kpiId = sel.value;
+  if(!kpiId) return;
+  const idx = document.querySelectorAll('#metricList .metric-row').length;
+  document.getElementById('metricList').insertAdjacentHTML('beforeend', metricRowHtml({kpiId, status:'gray', value:''}, idx, true));
+  sel.value = '';
+}
+async function saveInitiativeDetail(){
+  const it = state.initiatives.find(x=>x.id===state.openInitiativeId);
+  if(!it || !canEdit(it)) return;
+  it.name = document.getElementById('editName').value.trim() || it.name;
+  it.description = document.getElementById('editDesc').value.trim();
+  it.ownerName = document.getElementById('editOwner').value.trim();
+  const newStatus = document.getElementById('editStatus').value;
+  if(newStatus==='Concluída' && it.status!=='Concluída'){ it.completedDate = todayInput(); }
+  else if(newStatus!=='Concluída'){ delete it.completedDate; }
+  it.status = newStatus;
+  it.startDate = document.getElementById('editStart').value;
+  it.endDate = document.getElementById('editEnd').value;
+  it.progress = Math.max(0, Math.min(100, parseInt(document.getElementById('editProgress').value)||0));
+  it.okrIds = [...document.querySelectorAll('.okr-check-edit:checked')].map(c=>c.value);
+  it.metrics = [...document.querySelectorAll('#metricList .metric-row')].map(row => {
+    const idx = row.getAttribute('data-metric-idx');
+    const original = (it.metrics||[])[idx];
+    return { kpiId: original?original.kpiId:null, status: row.querySelector('.metric-status').value, value: row.querySelector('.metric-value').value.trim() };
+  }).filter(m=>m.kpiId);
+  await saveShared(KEYS.initiatives, state.initiatives);
+  closeModal();
+  renderMain();
+}
+async function deleteInitiative(id){
+  if(!confirm('Excluir esta iniciativa? Essa ação não pode ser desfeita.')) return;
+  state.initiatives = state.initiatives.filter(x=>x.id!==id);
+  await saveShared(KEYS.initiatives, state.initiatives);
+  closeModal();
+  renderMain();
+}
+async function addUpdate(id){
+  const input = document.getElementById('newUpdateText');
+  const text = input.value.trim();
+  if(!text) return;
+  const author = (state.profile && state.profile.name) || 'Anônimo';
+  const it = state.initiatives.find(x=>x.id===id);
+  it.updates = it.updates || [];
+  it.updates.push({ author, text, date: nowISO() });
+  await saveShared(KEYS.initiatives, state.initiatives);
+  renderInitiativeDetail();
+}
+
+/* ---------------- Filters / tab ---------------- */
+function setTab(tab){ state.tab = tab; renderMain(); }
+function setFilter(key, value){ state.filters[key] = value; renderMain(); }
+
+/* ---------------- Public API ---------------- */
+window.app = {
+  setTab, setFilter, openIdentityModal, saveIdentity, closeModal,
+  openOkrModal, addKrRow, saveOkr, deleteOkr, addMonthlyUpdate, importCxOkrs, importBatch2Okrs,
+  openKpiModal, saveKpi, deleteKpi,
+  openInitiativeModal, saveNewInitiative, toggleMetricRow,
+  openInitiative, addMetricToInitiative, saveInitiativeDetail, deleteInitiative, addUpdate,
+};
+
+init();
+</script>
+</body>
+</html>
